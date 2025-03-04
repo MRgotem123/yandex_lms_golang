@@ -18,7 +18,7 @@
 
   1. Клонируйте репозиторий:
      ```bash
-        git clone https://github.com/MRgotem123/yandex_lms_golang/HttpCaliculator.git
+     git clone https://github.com/MRgotem123/yandex_lms_golang/HttpCaliculator.git
      ```
 
   3. Перейдите в папку с кодом:
@@ -37,6 +37,8 @@
      ```bash
      go run Agent.go
      ```
+
+**Адрес:** http://localhost:9090/api/v1/calculate
 
 ## Примеры ввода:
   - пример выражения, для терминала:
@@ -69,3 +71,25 @@
       Invoke-RestMethod -Uri "http://localhost:9090/api/v1/expressions/" -Method Post -Body "id36f8aa562f"
       ```
 
+## Коды ответа:
+  1. Содержит невалидные символы, код ответа: 422
+     ```bash
+     curl -X POST http://localhost:9090/api/v1/calculate -d "!(2+2)*(4-8)"
+     ```
+
+  2. ID успешно записан, код ответа: 201
+     ```bash
+     curl -X POST http://localhost:9090/api/v1/calculate -d "(2+2)*(4-8)"
+     ```
+
+  3. Список всех выражений, 500 если выражений небыло, 200 если есть хотя-бы одно выражение.
+     ```bash
+     curl -X POST http://localhost:9090/api/v1/expressions
+     ```
+
+  4. Поиск выражения по ID, 500 если ошибка, 404 если нет такого ID, 200 если ID найдено.
+     ```bash
+     curl -X POST http://localhost:9090/api/v1/expressions/ -d "id36f8aa562f"
+     ```
+
+  5.  Агент запрашивает: получение задачи на выполнение, 500 что-то пошло не так, 404 нет задачи, 200 задача успешно получина.
