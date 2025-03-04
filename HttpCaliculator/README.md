@@ -1,4 +1,4 @@
-Клонирование репозитория: git clone https://github.com/MRgotem123/yandex_lms_golang/HttpCaliculator.git
+**Клонирование репозитория: git clone https://github.com/MRgotem123/yandex_lms_golang/HttpCaliculator.git
 
 Запуск Оркестратора: go run Orchestrator.go
 
