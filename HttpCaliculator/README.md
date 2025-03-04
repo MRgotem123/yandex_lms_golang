@@ -17,9 +17,9 @@
   (Требуется версия Go 1.23.1, или выше.)
 
   1. Клонируйте репозиторий:
-  ```bash
-    git clone https://github.com/MRgotem123/yandex_lms_golang/HttpCaliculator.git
-  ```
+     ```bash
+        git clone https://github.com/MRgotem123/yandex_lms_golang/HttpCaliculator.git
+     ```
 
   3. Перейдите в папку с кодом:
      ```bash
@@ -32,18 +32,40 @@
      ```bash
      go run Orchestrator.go
      ```
+     
   2. Запуск Агента:
      ```bash
      go run Agent.go
      ```
 
 ## Примеры ввода:
-  - пример выражения, для терминала: curl -X POST http://localhost:9090/api/v1/calculate -d "(2+2)*(4-8)"
-  - пример выражения, для PowerShell: Invoke-RestMethod -Uri "http://localhost:9090/api/v1/calculate" -Method Post -Body "(2+2)*(4-8)"
+  - пример выражения, для терминала:
+     ```bash
+     curl -X POST http://localhost:9090/api/v1/calculate -d "(2+2)*(4-8)"
+     ```
+     
+  - пример выражения, для PowerShell:
+      ```bash
+      Invoke-RestMethod -Uri "http://localhost:9090/api/v1/calculate" -Method Post -Body "(2+2)*(4-8)"
+      ```
     
-  - посмотреть все задачи, для терминала: curl -X POST http://localhost:9090/api/v1/expressions
-  - посмотреть все задачи, для PowerShell: Invoke-RestMethod -Uri "http://localhost:9090/api/v1/expressions" -Method Post
+  - посмотреть все задачи, для терминала:
+      ```bash
+      curl -X POST http://localhost:9090/api/v1/expressions
+      ```
+      
+  - посмотреть все задачи, для PowerShell:
+      ```bash
+      Invoke-RestMethod -Uri "http://localhost:9090/api/v1/expressions" -Method Post
+      ```
 
-  - посмотреть задачу по определённому id, для терминала: curl -X POST http://localhost:9090/api/v1/expressions/ -d "id36f8aa562f"
-  - посмотреть задачу по определённому id, для PowerShell: Invoke-RestMethod -Uri "http://localhost:9090/api/v1/expressions/" -Method Post -Body "id36f8aa562f"
+  - посмотреть задачу по определённому id, для терминала:
+      ```bash
+      curl -X POST http://localhost:9090/api/v1/expressions/ -d "id36f8aa562f"
+      ```
+      
+  - посмотреть задачу по определённому id, для PowerShell:
+      ```bash
+      Invoke-RestMethod -Uri "http://localhost:9090/api/v1/expressions/" -Method Post -Body "id36f8aa562f"
+      ```
 
