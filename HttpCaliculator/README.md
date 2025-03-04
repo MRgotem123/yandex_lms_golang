@@ -18,7 +18,11 @@
 
   1. Клонируйте репозиторий:
      ```bash
-     git clone https://github.com/MRgotem123/yandex_lms_golang/HttpCaliculator.git
+     git clone --no-checkout https://github.com/MRgotem123/yandex_lms_golang.git
+     cd yandex_lms_golang
+     git sparse-checkout init --cone
+     git sparse-checkout set HttpCaliculator
+     git checkout
      ```
 
   3. Перейдите в папку с кодом:
