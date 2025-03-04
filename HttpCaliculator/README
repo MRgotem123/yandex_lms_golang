@@ -10,4 +10,4 @@
 
 посмотреть все задачи: curl -X POST http://localhost:9090/api/v1/expressions
 
-посмотреть задачу по определённому id: curl -X POST http://localhost:9090/api/v1/expressions -d "id36f8aa562f"
+посмотреть задачу по определённому id: curl -X POST http://localhost:9090/api/v1/expressions/ -d "id36f8aa562f"
