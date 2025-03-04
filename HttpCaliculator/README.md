@@ -17,10 +17,11 @@
   (Требуется версия Go 1.23.1, или выше.)
 
   1. Клонируйте репозиторий:
-    ```bash
+  ```bash
     git clone https://github.com/MRgotem123/yandex_lms_golang/HttpCaliculator.git
-    ```
-  2. Перейдите в папку с кодом:
+  ```
+
+  3. Перейдите в папку с кодом:
      ```bash
      cd HttpCaliculator
      ```
