@@ -34,7 +34,6 @@ type resultData struct {
 	Result string `json:"result"`
 }
 
-// var resultmap = make(map[string]string)
 var ExpressionsMap = make(map[string]Values)
 var QueueTask = make(map[string]SendValues)
 
@@ -273,16 +272,14 @@ func toRPN(expression string) ([]string, error) {
 
 		// Обрабатываем унарный минус (если он стоит в начале или после оператора/скобки)
 		if char == '-' && (i == 0 || (!unicode.IsDigit(rune(expression[i-1])) && expression[i-1] != ')')) {
-			// Унарный минус присоединяем к числу
 			number := "-"
-			i++ // Сдвигаем индекс, чтобы захватить число
+			i++
 
-			// Собираем число после унарного минуса
 			for i < len(expression) && (unicode.IsDigit(rune(expression[i])) || expression[i] == '.') {
 				number += string(expression[i])
 				i++
 			}
-			i-- // Возвращаем индекс назад, так как внешний цикл увеличит его снова
+			i--
 			output = append(output, number)
 		} else if unicode.IsDigit(char) || char == '.' {
 			// Собираем обычное число
@@ -295,17 +292,17 @@ func toRPN(expression string) ([]string, error) {
 		} else if char == '(' {
 			operators = append(operators, char)
 		} else if char == ')' {
-			// Выводим операторы до открывающей скобки
+
 			for len(operators) > 0 && operators[len(operators)-1] != '(' {
 				output = append(output, string(operators[len(operators)-1]))
 				operators = operators[:len(operators)-1]
 			}
-			// Удаляем открывающую скобку
+
 			if len(operators) > 0 && operators[len(operators)-1] == '(' {
 				operators = operators[:len(operators)-1]
 			}
 		} else if _, exists := precedence[char]; exists {
-			// Обрабатываем операторы
+
 			for len(operators) > 0 && precedence[operators[len(operators)-1]] >= precedence[char] {
 				output = append(output, string(operators[len(operators)-1]))
 				operators = operators[:len(operators)-1]
@@ -314,7 +311,6 @@ func toRPN(expression string) ([]string, error) {
 		}
 	}
 
-	// Выводим оставшиеся операторы
 	for len(operators) > 0 {
 		output = append(output, string(operators[len(operators)-1]))
 		operators = operators[:len(operators)-1]
@@ -376,7 +372,6 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Ошибка при генерации id: %v", err), http.StatusInternalServerError)
 		return
 	}
-	//fmt.Println("346. СГЕНЕРИРОВАЛ ID:", ID)
 
 	if len(ExpressionsMap) > 0 {
 		for id := range ExpressionsMap {
@@ -390,7 +385,6 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 
 	// Добавляем в карту
 	AddToMap(expression, ID, "Not ready", "")
-	//fmt.Println("350. ДОБАВИЛ В МАПУ:", ExpressionsMap[ID])
 
 	// Отправляем ответ
 	w.WriteHeader(http.StatusCreated)
@@ -406,7 +400,6 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 
 	itemsToDalayte, itemToID := analys(ExpressionToRPN[ID])
 	fmt.Println("366. РАЗБИЛ НА ПРОСТЫЕ ЗАДАЧИ:", Slises_easyExpr)
-	//fmt.Printf("367. ИНДЕКСЫ НА УДАЛЕНИЕ: %v.\n 367. ИНДЕКСЫ ПОД ID: %v\n", itemsToDalayte, itemToID)
 
 	// Создаем задачи
 	for i := range Slises_easyExpr {
@@ -432,16 +425,12 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 		}
 		ExpressionToRPN[ID][itemToID[i]] = id
 	}
-	/*for _, item := range QueueTask {
-		fmt.Printf("387. РАЗБИТЫЕ ЗАДАЧИ (QueueTask): %v\n", item)
-	}*/
 
 	Slises_easyExpr = nil
 	for i := len(itemsToDalayte) - 1; i >= 0; i-- {
 		index := itemsToDalayte[i]
 		ExpressionToRPN[ID] = append(ExpressionToRPN[ID][:index], ExpressionToRPN[ID][index+1:]...)
 	}
-	//fmt.Println("398. ВЫРАЖЕНИЕ ПОСЛЕ УДЯЛЕНИЯ И ПОДСТАНОВКИ ID:", ExpressionToRPN)
 }
 
 func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {

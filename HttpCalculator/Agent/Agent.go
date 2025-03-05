@@ -26,9 +26,6 @@ type resultData2 struct {
 	Result string `json:"result"`
 }
 
-// var resultData2 = make(map[string]string)
-var mutex sync.Mutex
-
 var wg sync.WaitGroup
 
 func GetTask(client *http.Client, url string) (*SendValues2, error) {
@@ -98,7 +95,6 @@ func evaluateRPN(tokens []string) (float64, error) {
 func SendResultToOrchestrator(serverURL, taskID string, result float64) error {
 	resultStr := strconv.FormatFloat(result, 'f', 3, 64)
 
-	//resultData2[taskID] = resultStr
 	sendResult := resultData2{
 		ID:     taskID,
 		Result: resultStr,
@@ -146,7 +142,6 @@ func Worker(i int) {
 		// Отправка подтверждения
 		fmt.Println("Задача успешно запущена!")
 
-		//if task.Arg2 == "0" && task.Operation == "/" { }
 		// Формируем выражение
 		expression := []string{task.Arg1, task.Arg2, task.Operation}
 		fmt.Println("ФОРМЕРУЕМ ВЫРАЖЕНИЕ", expression)
