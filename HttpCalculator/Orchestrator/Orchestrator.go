@@ -61,7 +61,6 @@ func GetExpression(w http.ResponseWriter, r *http.Request) (string, error) {
 
 	err = NormalExpression(expression)
 	if err != nil {
-		//http.Error(w, fmt.Sprintf("Некоректное выражение: %v", err), http.StatusUnprocessableEntity)
 		return "", err
 	}
 
@@ -164,10 +163,25 @@ func NormalExpression(calculate string) error {
 
 	openParentheses := 0
 	lastCharWasOperator := false
+	lastCharWasDot := false
 
 	for i, r := range calculate {
 		if unicode.IsDigit(r) {
 			lastCharWasOperator = false
+			lastCharWasDot = false
+			continue
+		}
+
+		if r == '.' {
+			if i == 0 || i == len(calculate)-1 || lastCharWasOperator || calculate[i-1] == '(' {
+				return errors.New("некорректное использование десятичной точки")
+			}
+
+			if lastCharWasDot {
+				return errors.New("число не может содержать две точки подряд")
+			}
+
+			lastCharWasDot = true
 			continue
 		}
 
@@ -197,12 +211,14 @@ func NormalExpression(calculate string) error {
 			}
 
 			lastCharWasOperator = true
+			lastCharWasDot = false
 			continue
 		}
 
 		if r == '(' {
 			openParentheses++
 			lastCharWasOperator = false
+			lastCharWasDot = false
 			continue
 		}
 
@@ -212,6 +228,7 @@ func NormalExpression(calculate string) error {
 			}
 			openParentheses--
 			lastCharWasOperator = false
+			lastCharWasDot = false
 			continue
 		}
 
@@ -220,6 +237,10 @@ func NormalExpression(calculate string) error {
 
 	if openParentheses != 0 {
 		return errors.New("неверное количество открывающих скобок")
+	}
+
+	if lastCharWasDot {
+		return errors.New("число не может заканчиваться точкой")
 	}
 
 	return nil
