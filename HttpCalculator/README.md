@@ -7,6 +7,7 @@
   - Поддержка скобок для указания порядка операций.
   - Проверка выражения на наличие синтаксических ошибок.
   - Поддерживает десятичные цифры.
+  - Поддерживает отрицательные числа.
   - Разбивает сложные выражения на простые, для ускорения вычеслений.
   - Сохраняет историю вычислений.
   - Поиско выражений по их ID.
@@ -21,13 +22,13 @@
      git clone --no-checkout https://github.com/MRgotem123/yandex_lms_golang.git
      cd yandex_lms_golang
      git sparse-checkout init --cone
-     git sparse-checkout set HttpCaliculator
+     git sparse-checkout set HttpCalculator
      git checkout
      ```
 
   3. Перейдите в папку с кодом:
      ```bash
-     cd HttpCaliculator
+     cd HttpCalculator
      ```
 
 ## Запуск:
