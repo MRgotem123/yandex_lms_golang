@@ -31,8 +31,8 @@ var mutex sync.Mutex
 
 var wg sync.WaitGroup
 
-func getTask() (*SendValues2, error) {
-	resp, err := http.Get("http://localhost:9090/internal/task")
+func GetTask(client *http.Client, url string) (*SendValues2, error) {
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func evaluateRPN(tokens []string) (float64, error) {
 	return stack[0], nil
 }
 
-func sendResultToOrchestrator(taskID string, result float64) error {
+func SendResultToOrchestrator(serverURL, taskID string, result float64) error {
 	resultStr := strconv.FormatFloat(result, 'f', 3, 64)
 
 	//resultData2[taskID] = resultStr
@@ -112,7 +112,7 @@ func sendResultToOrchestrator(taskID string, result float64) error {
 
 	fmt.Println("Отправляем результат на Оркестратор:", string(jsonData))
 	// Отправляем результат обратно на тот же адрес
-	resp, err := http.Post("http://localhost:9090/internal/task", "application/json", bytes.NewReader(jsonData))
+	resp, err := http.Post(serverURL+"/internal/task", "application/json", bytes.NewReader(jsonData))
 	if err != nil {
 		fmt.Println("Ошибка отправки POST-запроса:", err)
 		return err
@@ -135,7 +135,8 @@ func Worker(i int) {
 	defer wg.Done()
 	fmt.Println("136. запусщинна горутина", i)
 	for {
-		task, err := getTask()
+		client := &http.Client{}
+		task, err := GetTask(client, "http://localhost:9090/internal/task")
 		if err != nil {
 			fmt.Printf("Ошибка получения задачи: %v\n", err)
 			time.Sleep(5 * time.Second) // Подождать перед повторной попыткой
@@ -145,6 +146,7 @@ func Worker(i int) {
 		// Отправка подтверждения
 		fmt.Println("Задача успешно запущена!")
 
+		//if task.Arg2 == "0" && task.Operation == "/" { }
 		// Формируем выражение
 		expression := []string{task.Arg1, task.Arg2, task.Operation}
 		fmt.Println("ФОРМЕРУЕМ ВЫРАЖЕНИЕ", expression)
@@ -160,7 +162,7 @@ func Worker(i int) {
 		time.Sleep(time.Duration(task.Operation_time) * time.Millisecond)
 
 		// Отправка результата
-		err = sendResultToOrchestrator(task.Id, result)
+		err = SendResultToOrchestrator("http://localhost:9090", task.Id, result)
 		if err != nil {
 			fmt.Printf("Ошибка отправки результата: %v\n", err)
 			continue

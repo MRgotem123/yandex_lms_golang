@@ -55,13 +55,14 @@ func isOperator(r rune) bool {
 func GetExpression(w http.ResponseWriter, r *http.Request) (string, error) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+
 		return "", fmt.Errorf("ошибка чтения тела запроса: %w", err)
 	}
 	expression := string(body)
 
 	err = NormalExpression(expression)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Некоректное выражение: %v", err), http.StatusInternalServerError)
+		//http.Error(w, fmt.Sprintf("Некоректное выражение: %v", err), http.StatusUnprocessableEntity)
 		return "", err
 	}
 
@@ -148,7 +149,7 @@ func Expressions(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(path, "/")
 
 	if ExpressionsMap[id].Expression == "" {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(fmt.Sprintln("id не найден!")))
 		return
 	}
@@ -236,6 +237,8 @@ func analys(rpnExpression []string) ([]int, []int) {
 		}
 		if err == nil {
 			count++
+		} else {
+			count--
 		}
 		if count == 2 {
 			_, err = strconv.ParseFloat(rpnExpression[item+1], 64)
@@ -268,8 +271,21 @@ func toRPN(expression string) ([]string, error) {
 	for i := 0; i < len(expression); i++ {
 		char := rune(expression[i])
 
-		// Если символ - цифра или точка (для чисел с плавающей точкой)
-		if unicode.IsDigit(char) || char == '.' {
+		// Обрабатываем унарный минус (если он стоит в начале или после оператора/скобки)
+		if char == '-' && (i == 0 || (!unicode.IsDigit(rune(expression[i-1])) && expression[i-1] != ')')) {
+			// Унарный минус присоединяем к числу
+			number := "-"
+			i++ // Сдвигаем индекс, чтобы захватить число
+
+			// Собираем число после унарного минуса
+			for i < len(expression) && (unicode.IsDigit(rune(expression[i])) || expression[i] == '.') {
+				number += string(expression[i])
+				i++
+			}
+			i-- // Возвращаем индекс назад, так как внешний цикл увеличит его снова
+			output = append(output, number)
+		} else if unicode.IsDigit(char) || char == '.' {
+			// Собираем обычное число
 			number := string(char)
 			for i+1 < len(expression) && (unicode.IsDigit(rune(expression[i+1])) || expression[i+1] == '.') {
 				i++
@@ -288,7 +304,7 @@ func toRPN(expression string) ([]string, error) {
 			if len(operators) > 0 && operators[len(operators)-1] == '(' {
 				operators = operators[:len(operators)-1]
 			}
-		} else if char == '+' || char == '-' || char == '*' || char == '/' {
+		} else if _, exists := precedence[char]; exists {
 			// Обрабатываем операторы
 			for len(operators) > 0 && precedence[operators[len(operators)-1]] >= precedence[char] {
 				output = append(output, string(operators[len(operators)-1]))
@@ -351,7 +367,7 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 
 	expression, err := GetExpression(w, r)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Ошибка некоректное выражение: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Ошибка некоректное выражение: %v", err), http.StatusUnprocessableEntity)
 		return
 	}
 	fmt.Println("340. ПОЛУЧИЛ ВЫРАЖЕНИЕ:", expression)
@@ -378,7 +394,7 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 
 	// Отправляем ответ
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(fmt.Sprintf("Уникальный id на ваше выражение: %s", ID)))
+	w.Write([]byte(fmt.Sprintf("Уникальный id на ваше выражение: %s\n", ID)))
 
 	// Преобразуем в RPN
 	ExpressionToRPN[ID], err = toRPN(expression)
@@ -407,6 +423,11 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 		case "*":
 			AddToQueueTaskMap(ID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_MULTIPLICATION_MS)
 		case "/":
+			if Slises_easyExpr[i][1] == "0" {
+				err := errors.New("нелзя делить на ноль!")
+				http.Error(w, fmt.Sprint("Ошибка:", err), http.StatusUnprocessableEntity)
+				return
+			}
 			AddToQueueTaskMap(ID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_DIVISIONS_MS)
 		}
 		ExpressionToRPN[ID][itemToID[i]] = id
@@ -432,7 +453,7 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		if len(QueueTask) == 0 {
 			fmt.Println("Нет доступных задач для агента")
-			http.Error(w, "Нет доступных задач", http.StatusNoContent)
+			http.Error(w, "Нет доступных задач для агента", http.StatusNotFound)
 			return
 		}
 
@@ -455,8 +476,8 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 
 		var task resultData
 		if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-			log.Fatalf("Ошибка декодирования JSON: %v\n", err)
-			http.Error(w, "Ошибка декодирования", http.StatusBadRequest)
+			log.Printf("Ошибка декодирования JSON: %v\n", err)
+			http.Error(w, "Ошибка декодирования", http.StatusInternalServerError)
 			return
 		}
 
@@ -465,6 +486,7 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 		// Обновление результата
 		ID, _ := divideID(task.ID, "")
 		idLocation := IDLocation(ExpressionToRPN[ID])
+		fmt.Println("место ID и выражение:", idLocation, ExpressionToRPN[ID])
 		updated := false
 		for _, i := range idLocation {
 			ID2, smlid := divideID(task.ID, "")
@@ -510,6 +532,11 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 				case "*":
 					AddToQueueTaskMap(ID2+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_MULTIPLICATION_MS)
 				case "/":
+					if Slises_easyExpr[i][1] == "0" {
+						err := errors.New("нелзя делить на ноль!")
+						http.Error(w, fmt.Sprint("Ошибка:", err), http.StatusUnprocessableEntity)
+						return
+					}
 					AddToQueueTaskMap(ID2+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_DIVISIONS_MS)
 				}
 				Slises_easyExpr[i] = []string{id}
@@ -524,7 +551,7 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 				index := itemsToDalayte[i]
 				ExpressionToRPN[ID2] = append(ExpressionToRPN[ID2][:index], ExpressionToRPN[ID2][index+1:]...)
 			}
-			fmt.Println("ВЫРАЖЕНИЕ ПОСЛЕ УДЯЛЕНИЯ И ПОДСТАНОВКИ ID:", ExpressionToRPN[ID2])
+			fmt.Println("ВЫРАЖЕНИЕ ПОСЛЕ УДАЛЕНИЯ И ПОДСТАНОВКИ ID:", ExpressionToRPN[ID2])
 		}
 
 		w.WriteHeader(http.StatusOK)
