@@ -41,12 +41,14 @@ Http калькулятор состоит из Агента и Оркестра
 
   1. Запуск Оркестратора:
      ```bash
+     cd Orchestrator
      go run Orchestrator.go
      ```
      
   2. Запуск Агента:
      (в новом окне терминала)
      ```bash
+     cd Agent
      go run Agent.go
      ```
 
