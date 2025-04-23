@@ -158,6 +158,6 @@ func TestSendResultToOrchestrator_NetworkError(t *testing.T) {
 	err := SendResultToOrchestrator("http://invalid-url", "789", 15.0)
 
 	if err == nil {
-		t.Error("Ожидалась ошибка при сетевой проблеме, но ее нет")
+		t.Error("Ожидалась ошибка при сетевой проблеме, но её нет")
 	}
 }
