@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/MRgotem123/yandex_lms_golang/HttpCalculator/WorkWithSQL"
 	"io"
 	"log"
 	"net/http"
@@ -14,6 +15,8 @@ import (
 	"sync"
 	"unicode"
 )
+
+var UserID string
 
 type Values struct {
 	Expression string
@@ -81,7 +84,7 @@ func GenerateRandomID(length int, large string) (string, error) {
 	return "id" + randomID, nil
 }
 
-func AddToMap(expression, id, status, result string) {
+/*func AddToMap(expression, id, status, result string) {
 	if id == "" {
 		log.Fatal("Ошибка: ID не может быть пустым")
 		return
@@ -100,7 +103,7 @@ func AddToMap(expression, id, status, result string) {
 	}
 
 	ExpressionsMap[id] = val
-}
+}*/
 
 func AddToQueueTaskMap(id, arg1, arg2, operation string, operation_time int) {
 	if id == "" {
@@ -129,9 +132,17 @@ func AddToQueueTaskMap(id, arg1, arg2, operation string, operation_time int) {
 }
 
 func Expressions(w http.ResponseWriter, r *http.Request) {
+	if UserID == "" {
+		http.Error(w, `{"Войдите в акаунт или харегестрируйтесь."}`, http.StatusUnauthorized)
+	}
+
 	path := strings.TrimPrefix(r.URL.Path, "/api/v1/expressions")
 	if path == "" {
-		if len(ExpressionsMap) == 0 {
+		lenExpressions, err := WorkWithSQL.LenExpresions()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		if lenExpressions == 0 {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintln("выражения отсутствуют!")))
 			return
@@ -146,14 +157,15 @@ func Expressions(w http.ResponseWriter, r *http.Request) {
 
 	id := strings.TrimPrefix(path, "/")
 
-	if ExpressionsMap[id].Expression == "" {
+	OutExpression, err := WorkWithSQL.GetExpression(id)
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(fmt.Sprintln("id не найден!")))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintln(ExpressionsMap[id])))
-	fmt.Println(ExpressionsMap[id])
+	w.Write([]byte(fmt.Sprintln(OutExpression)))
+	fmt.Println(OutExpression)
 }
 
 func NormalExpression(calculate string) error {
@@ -382,6 +394,10 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	defer mu.Unlock()
 
+	if UserID == "" {
+		http.Error(w, `{"Войдите в акаунт или харегестрируйтесь."}`, http.StatusUnauthorized)
+	}
+
 	expression, err := GetExpression(w, r)
 	if err != nil {
 		log.Printf("ошибка парсинга выражения: %v", err)
@@ -390,7 +406,7 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("340. ПОЛУЧИЛ ВЫРАЖЕНИЕ:", expression)
-	ID, err := GenerateRandomID(10, "")
+	ExpressionID, err := GenerateRandomID(10, "")
 	if err != nil {
 		log.Printf("Ошибка при генерации ID: %v", err)
 
@@ -398,25 +414,30 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(ExpressionsMap) > 0 {
-		for id := range ExpressionsMap {
-			if ExpressionsMap[id].Expression == expression {
-				AddToMap(expression, ID, ExpressionsMap[id].Status, ExpressionsMap[id].Result)
-				w.Write([]byte(fmt.Sprint("Это выражение уже было посчитано!")))
-				return
-			}
+	lenExpr, err := WorkWithSQL.LenExpresions()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	if lenExpr > 0 {
+		findExprID, err := WorkWithSQL.FindSaymExpression(expression)
+		if err == nil {
+			w.Write([]byte(fmt.Sprint("Это выражение уже было посчитано! Вот его ID:", findExprID)))
+			return
 		}
 	}
 
 	// Добавляем в карту
-	AddToMap(expression, ID, "Not ready", "")
+	err = WorkWithSQL.InsertExpresions(UserID, ExpressionID, expression, 1)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 
 	// Отправляем ответ
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(fmt.Sprintf("Уникальный id на ваше выражение: %s\n", ID)))
+	w.Write([]byte(fmt.Sprintf("Уникальный id на ваше выражение: %s\n", ExpressionID)))
 
 	// Преобразуем в RPN
-	ExpressionToRPN[ID], err = ToRPN(expression)
+	ExpressionToRPN[ExpressionID], err = ToRPN(expression)
 	if err != nil {
 		log.Printf("Ошабка при переводе в RPN: %v\n", err)
 
@@ -425,7 +446,7 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("363. ПЕРЕВЁЛ В RPN:", ExpressionToRPN)
 
-	itemsToDalayte, itemToID := Analys(ExpressionToRPN[ID])
+	itemsToDalayte, itemToID := Analys(ExpressionToRPN[ExpressionID])
 	log.Println("366. РАЗБИЛ НА ПРОСТЫЕ ЗАДАЧИ:", Slises_easyExpr)
 
 	// Создаем задачи
@@ -437,11 +458,11 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 		}
 		switch Slises_easyExpr[i][2] {
 		case "+":
-			AddToQueueTaskMap(ID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_ADDITION_MS)
+			AddToQueueTaskMap(ExpressionID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_ADDITION_MS)
 		case "-":
-			AddToQueueTaskMap(ID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_SUBTRACTION_MS)
+			AddToQueueTaskMap(ExpressionID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_SUBTRACTION_MS)
 		case "*":
-			AddToQueueTaskMap(ID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_MULTIPLICATION_MS)
+			AddToQueueTaskMap(ExpressionID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_MULTIPLICATION_MS)
 		case "/":
 			if Slises_easyExpr[i][1] == "0" {
 				log.Println("деление на ноль!")
@@ -449,15 +470,15 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, `{"error": "нелзя делить на ноль!"}`, http.StatusUnprocessableEntity)
 				return
 			}
-			AddToQueueTaskMap(ID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_DIVISIONS_MS)
+			AddToQueueTaskMap(ExpressionID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_DIVISIONS_MS)
 		}
-		ExpressionToRPN[ID][itemToID[i]] = id
+		ExpressionToRPN[ExpressionID][itemToID[i]] = id
 	}
 
 	Slises_easyExpr = nil
 	for i := len(itemsToDalayte) - 1; i >= 0; i-- {
 		index := itemsToDalayte[i]
-		ExpressionToRPN[ID] = append(ExpressionToRPN[ID][:index], ExpressionToRPN[ID][index+1:]...)
+		ExpressionToRPN[ExpressionID] = append(ExpressionToRPN[ExpressionID][:index], ExpressionToRPN[ExpressionID][index+1:]...)
 	}
 }
 
@@ -527,7 +548,11 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 			if len(ExpressionToRPN[ID]) == 1 {
 				//записываем ответ в основную мапу!
 				ID2, _ := DivideID(task.ID, "")
-				AddToMap("", ID2, "ready", ExpressionToRPN[ID2][0])
+				err := WorkWithSQL.UpdateExpressionResult(ID2, ExpressionToRPN[ID2][0], 3)
+				if err != nil {
+					log.Println("Ошибка записи ответа в SQL:", err)
+					http.Error(w, `{"Ошибка записи ответа."}`, http.StatusInternalServerError)
+				}
 				log.Println("записываем ответ в основную мапу!", ID2)
 				return
 			}
@@ -579,4 +604,22 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Результат принят"))
 	}
+}
+
+func Registrate(w http.ResponseWriter, r *http.Request) {
+	userID, err, statusKode := WorkWithSQL.Registrate(w, r)
+	if err != nil {
+		http.Error(w, `{"Ошибка регестрации": err}`, statusKode)
+	}
+	UserID = userID
+	w.Write([]byte("Вы успешно зарегестрировались! :)"))
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	userID, err, statusKode := WorkWithSQL.Login(w, r)
+	if err != nil {
+		http.Error(w, `{"Ошибка входа": err}`, statusKode)
+	}
+	UserID = userID
+	w.Write([]byte("Вы успешно вошли в аккаунт! :)"))
 }
