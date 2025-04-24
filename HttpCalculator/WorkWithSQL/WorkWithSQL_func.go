@@ -1,4 +1,4 @@
-package avtorisation
+package workWithSQL
 
 import (
 	"crypto/rand"
@@ -13,6 +13,13 @@ var DB *sql.DB
 type RegisterRequest struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
+}
+
+type OutExpression struct {
+	ExpressionID string
+	Expression   string
+	Result       string
+	StatusID     int
 }
 
 func hashPassword(password string) string {
