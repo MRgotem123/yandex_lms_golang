@@ -1,6 +1,7 @@
 package main
 
 import (
+	"HttpCalculator/WorkWithSQL"
 	"log"
 	"net/http"
 )
@@ -26,6 +27,18 @@ func orchestratorReturn(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	db, err := WorkWithSQL.CreateBD()
+	if err != nil {
+		log.Println("Ошибка создания db:", err)
+		return
+	}
+	if db == nil {
+		log.Println("db == nil")
+		return
+	}
+
+	UserRepo = WorkWithSQL.NewSQLiteUserRepository(db)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/v1/register", registrate)
