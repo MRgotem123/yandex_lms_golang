@@ -2,11 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestGetTask(t *testing.T) {
@@ -159,5 +162,113 @@ func TestSendResultToOrchestrator_NetworkError(t *testing.T) {
 
 	if err == nil {
 		t.Error("Ожидалась ошибка при сетевой проблеме, но её нет")
+	}
+}
+
+func TestWorker(t *testing.T) {
+	tests := []struct {
+		name           string
+		getTask        func(url string) (*SendValues2, error)
+		evaluateRPN    func(tokens []string) (float64, error)
+		sendResultFunc func(serverURL, taskID string, result float64) error
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name: "normal worker",
+			getTask: func(url string) (*SendValues2, error) {
+				return &SendValues2{
+					Id:             "123",
+					Arg1:           "5",
+					Arg2:           "3",
+					Operation:      "+",
+					Operation_time: 200,
+				}, nil
+			},
+			evaluateRPN: func(tokens []string) (float64, error) {
+				return 8.000, nil
+			},
+			sendResultFunc: func(serverURL, taskID string, result float64) error {
+				if taskID != "123" {
+					t.Errorf("expected taskID 123, got %s", taskID)
+				}
+				if result != 8.0 {
+					t.Errorf("expected result 8.0, got %f", result)
+				}
+				return nil
+			},
+			expectError: false,
+		},
+		{
+			name: "getTask error",
+			getTask: func(url string) (*SendValues2, error) {
+				return nil, errors.New("getTask error")
+			},
+			evaluateRPN: func(tokens []string) (float64, error) {
+				t.Error("evaluateRPN should not be called when getTask fails")
+				return 0, nil
+			},
+			sendResultFunc: func(serverURL, taskID string, result float64) error {
+				t.Error("sendResultFunc should not be called when getTask fails")
+				return nil
+			},
+			expectError: false, // Worker продолжает работать после ошибки
+		},
+		{
+			name: "evaluateRPN error",
+			getTask: func(url string) (*SendValues2, error) {
+				return &SendValues2{
+					Id:             "123",
+					Arg1:           "5",
+					Arg2:           "3",
+					Operation:      "+",
+					Operation_time: 200,
+				}, nil
+			},
+			evaluateRPN: func(tokens []string) (float64, error) {
+				return 0, errors.New("evaluateRPN error")
+			},
+			sendResultFunc: func(serverURL, taskID string, result float64) error {
+				t.Error("sendResultFunc should not be called when evaluateRPN fails")
+				return nil
+			},
+			expectError: true,
+		},
+		{
+			name: "sendResult error",
+			getTask: func(url string) (*SendValues2, error) {
+				return &SendValues2{
+					Id:             "123",
+					Arg1:           "5",
+					Arg2:           "3",
+					Operation:      "+",
+					Operation_time: 200,
+				}, nil
+			},
+			evaluateRPN: func(tokens []string) (float64, error) {
+				return 8.0, nil
+			},
+			sendResultFunc: func(serverURL, taskID string, result float64) error {
+				return errors.New("sendResult error")
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var wg sync.WaitGroup
+			wg.Add(1)
+
+			done := make(chan struct{})
+			defer close(done)
+
+			go func() {
+				defer wg.Done()
+				Worker(1)
+			}()
+
+			time.Sleep(300 * time.Millisecond)
+		})
 	}
 }
