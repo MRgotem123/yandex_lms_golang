@@ -54,7 +54,7 @@ Http калькулятор состоит из Агента и Оркестра
      go run Agent.go
      ```
 
-**Адрес:** http://localhost:9090/api/v1/calculate
+**Адрес:** http://localhost:9090/api/v1
 
 ## Примеры ввода:
   (в новом окне терминала)
