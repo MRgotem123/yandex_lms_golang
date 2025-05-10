@@ -1,13 +1,13 @@
 package main
 
 import (
-	"HttpCalculator/WorkWithSQL"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/MRgotem123/yandex_lms_golang/HttpCalculator/WorkWithSQL"
 	"io"
 	"log"
 	"net/http"
