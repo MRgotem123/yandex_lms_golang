@@ -27,15 +27,7 @@ Http калькулятор состоит из Агента и Оркестра
 
   1. Клонируйте репозиторий:
      ```bash
-     git clone --no-checkout https://github.com/MRgotem123/yandex_lms_golang.git
-     cd yandex_lms_golang
-     git sparse-checkout init --cone
-     git sparse-checkout set HttpCalculator
-     git checkout
-     ```
-
-  3. Перейдите в папку с кодом:
-     ```bash
+     git clone --no-checkout https://github.com/MRgotem123/yandex_lms_golang/HttpCalculator.git
      cd HttpCalculator
      ```
 
@@ -43,21 +35,61 @@ Http калькулятор состоит из Агента и Оркестра
 
   1. Запуск Оркестратора:
      ```bash
-     cd Orchestrator
-     go run Orchestrator.go
+     go run Orchestrator/
      ```
      
   2. Запуск Агента:
      (в новом окне терминала)
      ```bash
-     cd Agent
-     go run Agent.go
+     go run Agent/
      ```
 
 **Адрес:** http://localhost:9090/api/v1
 
 ## Примеры ввода:
   (в новом окне терминала)
+  - пример регестрации, для терменала:
+    ```bash
+      curl -X POST "http://localhost:9090/api/v1/resister" \
+     -H "Content-Type: application/json" \
+     -d '{"login":"matvey","password":"123"}'
+    ```
+
+  - пример регестрации, для PowerShell:
+    ```bash
+      $body = @{
+        login    = "matvey"
+        password = "123"
+      } | ConvertTo-Json -Depth 3
+
+      Invoke-RestMethod `
+        -Uri "http://localhost:9090/api/v1/resister" `
+        -Method Post `
+        -Body $body `
+        -ContentType "application/json"
+    ```
+
+  - пример входа, для терменала:
+    ```bash
+      curl -X POST "http://localhost:9090/api/v1/login" \
+     -H "Content-Type: application/json" \
+     -d '{"login":"matvey","password":"123"}'
+    ```
+
+  - пример входа, для PowerShell:
+    ```bash
+    $body = @{
+        login    = "matvey"
+        password = "123"
+      } | ConvertTo-Json -Depth 3
+
+      Invoke-RestMethod `
+        -Uri "http://localhost:9090/api/v1/login" `
+        -Method Post `
+        -Body $body `
+        -ContentType "application/json"
+    ```
+  
   - пример выражения, для терминала:
      ```bash
      curl -X POST http://localhost:9090/api/v1/calculate -d "(2+2)*(4-8)"
@@ -113,12 +145,12 @@ Http калькулятор состоит из Агента и Оркестра
 
 ## Запуск тестов:
 
-  - В папке с Оркестратором запукаем тест:
+  - запуск теста для Orchestrator:
     ```bash
-    go test -v
+    go test Orchestrator/
     ```
 
-  - В папке с Агентом запускаем тест:
+  - запуск теста для Agent:
     ```bash
-    go test -v
+    go test Agent/
     ```
