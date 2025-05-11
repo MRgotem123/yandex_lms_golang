@@ -496,7 +496,7 @@ func Orchestrator(w http.ResponseWriter, r *http.Request) {
 		case "/":
 			if Slises_easyExpr[i][1] == "0" {
 				log.Println("деление на ноль!")
-				http.Error(w, `{"error": "нелзя делить на ноль!"}`, http.StatusUnprocessableEntity)
+				http.Error(w, `{"error": "деление на ноль!"}`, http.StatusUnprocessableEntity)
 				return
 			}
 			if err = AddToQueueTaskMap(ExpressionID+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_DIVISIONS_MS); err != nil {
@@ -569,7 +569,7 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !updated {
-			log.Panicf("459. Не найдено совпадение ID в ExpressionToRPN[ID]")
+			log.Panicf("Не найдено совпадение ID в ExpressionToRPN[ID]")
 		}
 
 		log.Println("ПОДСТАВИЛ РЕЗУЛЬТАТ В ВЫРАЖЕНИЕ:", ExpressionToRPN[ID])
@@ -618,7 +618,7 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 					if Slises_easyExpr[i][1] == "0" {
 						log.Println("деление на ноль!")
 
-						http.Error(w, `{"error": "нелзя делить на ноль!"}`, http.StatusUnprocessableEntity)
+						http.Error(w, `{"error": "деление на ноль!"}`, http.StatusUnprocessableEntity)
 						return
 					}
 					if err = AddToQueueTaskMap(ID2+id, Slises_easyExpr[i][0], Slises_easyExpr[i][1], Slises_easyExpr[i][2], TIME_DIVISIONS_MS); err != nil {

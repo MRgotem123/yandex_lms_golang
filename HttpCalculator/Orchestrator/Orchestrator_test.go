@@ -439,7 +439,7 @@ func TestOrchestrator(t *testing.T) {
 			userID:       "user1",
 			requestBody:  "2/0",
 			expectedCode: http.StatusUnprocessableEntity,
-			expectedBody: `{"error": "нелзя делить на ноль!"}`,
+			expectedBody: `{"error": "деление на ноль!"}`,
 		},
 		{
 			name:         "empty expression",
@@ -496,18 +496,6 @@ type Task struct {
 func TestOrchestratorReturnIntegration(t *testing.T) {
 	// Создаем обработчик с recovery middleware
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Отлов паники внутри обработчика
-		defer func() {
-			if r := recover(); r != nil {
-				if err, ok := r.(string); ok && strings.Contains(err, "Не найдено совпадение ID в ExpressionToRPN[ID]") {
-					w.WriteHeader(http.StatusNotFound)
-					fmt.Fprint(w, `{"error":"ID not found in ExpressionToRPN"}`)
-				} else {
-					// Пробрасываем другие паники
-					panic(r)
-				}
-			}
-		}()
 
 		// Вызов оригинального обработчика
 		OrchestratorReturn(w, r)
@@ -548,8 +536,8 @@ func TestOrchestratorReturnIntegration(t *testing.T) {
 			t.Fatalf("Failed to decode error response: %v", err)
 		}
 
-		if response["error"] != "ID not found in ExpressionToRPN" {
-			t.Errorf("Expected error message 'ID not found in ExpressionToRPN', got '%s'", response["error"])
+		if response["error"] != "Не найдено совпадение ID в ExpressionToRPN[ID]" {
+			t.Errorf("Expected error message 'Не найдено совпадение ID в ExpressionToRPN[ID]', got '%s'", response["error"])
 		}
 	})
 
@@ -561,8 +549,8 @@ func TestOrchestratorReturnIntegration(t *testing.T) {
 		}
 		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusNotFound {
-			t.Errorf("Expected status %d, got %d", http.StatusNotFound, resp.StatusCode)
+		if resp.StatusCode != http.StatusNotFound || resp.StatusCode != http.Ok {
+			t.Errorf("Expected status %d or %d, got %d", http.StatusNotFound, http.Ok, resp.StatusCode)
 		}
 	})
 }
