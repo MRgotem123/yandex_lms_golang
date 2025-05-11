@@ -548,7 +548,7 @@ func TestOrchestratorReturnIntegration(t *testing.T) {
 		}
 		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusNotFound || resp.StatusCode != http.StatusOK {
+		if resp.StatusCode != http.StatusNotFound && resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status %d or %d, got %d", http.StatusNotFound, http.StatusOK, resp.StatusCode)
 		}
 	})
