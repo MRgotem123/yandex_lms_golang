@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/MRgotem123/yandex_lms_golang/HttpCalculator/WorkWithSQL"
+	"HttpCalculator/WorkWithSQL"
 	"log"
 	"net/http"
 )

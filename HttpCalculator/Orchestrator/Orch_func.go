@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/MRgotem123/yandex_lms_golang/HttpCalculator/WorkWithSQL"
+	"HttpCalculator/WorkWithSQL"
 	"io"
 	"log"
 	"net/http"
