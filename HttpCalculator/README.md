@@ -67,7 +67,7 @@ Http калькулятор состоит из Агента и Оркестра
       } | ConvertTo-Json -Depth 3
 
       Invoke-RestMethod `
-        -Uri "http://localhost:9090/api/v1/resister" `
+        -Uri "http://localhost:9090/api/v1/register" `
         -Method Post `
         -Body $body `
         -ContentType "application/json"
