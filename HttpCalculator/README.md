@@ -25,7 +25,7 @@ Http калькулятор состоит из Агента и Оркестра
    - Go 1.23.1, или выше.
    - git
 
-  1. Клонируйте репозиторий:
+  1. Клонируйте репозиторий (нужно находится в папке с go):
      ```bash
        git clone --no-checkout https://github.com/MRgotem123/yandex_lms_golang.git
        cd yandex_lms_golang
@@ -39,13 +39,13 @@ Http калькулятор состоит из Агента и Оркестра
 
   1. Запуск Оркестратора из папки HttpCalculator:
      ```bash
-     go run Orchestrator/
+     go run HttpCalculator/Orchestrator/
      ```
      
   2. Запуск Агента из папки HttpCalculator:
      (в новом окне терминала)
      ```bash
-     go run Agent/
+     go run HttpCalculator/Agent/
      ```
 
 **Адрес:** http://localhost:9090/api/v1
@@ -54,9 +54,9 @@ Http калькулятор состоит из Агента и Оркестра
   (в новом окне терминала)
   - пример регестрации, для терменала:
     ```bash
-      curl -X POST "http://localhost:9090/api/v1/resister" \
-     -H "Content-Type: application/json" \
-     -d '{"login":"matvey","password":"123"}'
+      curl -X POST "http://localhost:9090/api/v1/register" \
+      -H "Content-Type: application/json" \
+      -d '{"login":"matvey","password":"123"}'
     ```
 
   - пример регестрации, для PowerShell:
@@ -67,7 +67,7 @@ Http калькулятор состоит из Агента и Оркестра
       } | ConvertTo-Json -Depth 3
 
       Invoke-RestMethod `
-        -Uri "http://localhost:9090/api/v1/resister" `
+        -Uri "http://localhost:9090/api/v1/register" `
         -Method Post `
         -Body $body `
         -ContentType "application/json"
@@ -76,8 +76,8 @@ Http калькулятор состоит из Агента и Оркестра
   - пример входа, для терменала:
     ```bash
       curl -X POST "http://localhost:9090/api/v1/login" \
-     -H "Content-Type: application/json" \
-     -d '{"login":"matvey","password":"123"}'
+      -H "Content-Type: application/json" \
+      -d '{"login":"matvey","password":"123"}'
     ```
 
   - пример входа, для PowerShell:
@@ -151,10 +151,10 @@ Http калькулятор состоит из Агента и Оркестра
 
   - запуск теста для Orchestrator:
     ```bash
-    go test Orchestrator/
+    go test HttpCalculator/Orchestrator/
     ```
 
   - запуск теста для Agent:
     ```bash
-    go test Agent/
+    go test HttpCalculator/Agent/
     ```
