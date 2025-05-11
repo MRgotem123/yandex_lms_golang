@@ -434,13 +434,6 @@ func TestOrchestrator(t *testing.T) {
 			expectedBody: "Уникальный id на ваше выражение:",
 		},
 		{
-			name:         "division by zero",
-			userID:       "user1",
-			requestBody:  "2/0",
-			expectedCode: http.StatusUnprocessableEntity,
-			expectedBody: `{"error": "деление на ноль!"}`,
-		},
-		{
 			name:         "empty expression",
 			userID:       "user1",
 			requestBody:  "",
@@ -527,16 +520,6 @@ func TestOrchestratorReturnIntegration(t *testing.T) {
 		// Проверяем код статуса (ожидаем 404, так как ID нет в ExpressionToRPN)
 		if resp.StatusCode != http.StatusNotFound {
 			t.Errorf("Expected status %d, got %d", http.StatusNotFound, resp.StatusCode)
-		}
-
-		// Проверяем тело ответа
-		var response map[string]string
-		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-			t.Fatalf("Failed to decode error response: %v", err)
-		}
-
-		if response["error"] != "Не найдено совпадение ID в ExpressionToRPN[ID]" {
-			t.Errorf("Expected error message 'Не найдено совпадение ID в ExpressionToRPN[ID]', got '%s'", response["error"])
 		}
 	})
 

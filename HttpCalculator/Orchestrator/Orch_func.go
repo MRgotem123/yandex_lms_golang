@@ -571,6 +571,7 @@ func OrchestratorReturn(w http.ResponseWriter, r *http.Request) {
 		if !updated {
 			log.Println("Не найдено совпадение ID в ExpressionToRPN[ID]")
 			http.Error(w, `{"Не найдено совпадение ID в ExpressionToRPN[ID]"}`, http.StatusNotFound)
+			return
 		}
 
 		log.Println("ПОДСТАВИЛ РЕЗУЛЬТАТ В ВЫРАЖЕНИЕ:", ExpressionToRPN[ID])
