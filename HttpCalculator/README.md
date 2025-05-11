@@ -25,7 +25,7 @@ Http калькулятор состоит из Агента и Оркестра
    - Go 1.23.1, или выше.
    - git
 
-  1. Клонируйте репозиторий:
+  1. Клонируйте репозиторий (нужно находится в папке с go):
      ```bash
        git clone --no-checkout https://github.com/MRgotem123/yandex_lms_golang.git
        cd yandex_lms_golang
@@ -54,7 +54,7 @@ Http калькулятор состоит из Агента и Оркестра
   (в новом окне терминала)
   - пример регестрации, для терменала:
     ```bash
-      curl -X POST "http://localhost:9090/api/v1/resister" \
+      curl -X POST "http://localhost:9090/api/v1/register" \
       -H "Content-Type: application/json" \
       -d '{"login":"matvey","password":"123"}'
     ```
