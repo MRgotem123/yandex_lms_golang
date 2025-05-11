@@ -27,18 +27,22 @@ Http калькулятор состоит из Агента и Оркестра
 
   1. Клонируйте репозиторий:
      ```bash
-     git clone --no-checkout https://github.com/MRgotem123/yandex_lms_golang/HttpCalculator.git
-     cd HttpCalculator
+       git clone --no-checkout https://github.com/MRgotem123/yandex_lms_golang.git
+       cd yandex_lms_golang
+       git sparse-checkout init --cone
+       git sparse-checkout set HttpCalculator
+       git checkout main
+       cd HttpCalculator
      ```
 
 ## Запуск:
 
-  1. Запуск Оркестратора:
+  1. Запуск Оркестратора из папки HttpCalculator:
      ```bash
      go run Orchestrator/
      ```
      
-  2. Запуск Агента:
+  2. Запуск Агента из папки HttpCalculator:
      (в новом окне терминала)
      ```bash
      go run Agent/
