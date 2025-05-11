@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -549,8 +548,8 @@ func TestOrchestratorReturnIntegration(t *testing.T) {
 		}
 		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusNotFound || resp.StatusCode != http.Ok {
-			t.Errorf("Expected status %d or %d, got %d", http.StatusNotFound, http.Ok, resp.StatusCode)
+		if resp.StatusCode != http.StatusNotFound || resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected status %d or %d, got %d", http.StatusNotFound, http.StatusOK, resp.StatusCode)
 		}
 	})
 }
