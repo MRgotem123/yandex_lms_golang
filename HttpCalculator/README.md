@@ -39,13 +39,13 @@ Http калькулятор состоит из Агента и Оркестра
 
   1. Запуск Оркестратора из папки HttpCalculator:
      ```bash
-     go run Orchestrator/
+     go run HttpCalculator/Orchestrator/
      ```
      
   2. Запуск Агента из папки HttpCalculator:
      (в новом окне терминала)
      ```bash
-     go run Agent/
+     go run HttpCalculator/Agent/
      ```
 
 **Адрес:** http://localhost:9090/api/v1
@@ -55,8 +55,8 @@ Http калькулятор состоит из Агента и Оркестра
   - пример регестрации, для терменала:
     ```bash
       curl -X POST "http://localhost:9090/api/v1/resister" \
-     -H "Content-Type: application/json" \
-     -d '{"login":"matvey","password":"123"}'
+      -H "Content-Type: application/json" \
+      -d '{"login":"matvey","password":"123"}'
     ```
 
   - пример регестрации, для PowerShell:
@@ -76,8 +76,8 @@ Http калькулятор состоит из Агента и Оркестра
   - пример входа, для терменала:
     ```bash
       curl -X POST "http://localhost:9090/api/v1/login" \
-     -H "Content-Type: application/json" \
-     -d '{"login":"matvey","password":"123"}'
+      -H "Content-Type: application/json" \
+      -d '{"login":"matvey","password":"123"}'
     ```
 
   - пример входа, для PowerShell:
@@ -151,10 +151,10 @@ Http калькулятор состоит из Агента и Оркестра
 
   - запуск теста для Orchestrator:
     ```bash
-    go test Orchestrator/
+    go test HttpCalculator/Orchestrator/
     ```
 
   - запуск теста для Agent:
     ```bash
-    go test Agent/
+    go test HttpCalculator/Agent/
     ```
