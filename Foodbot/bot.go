@@ -11,12 +11,7 @@ import (
 	"net/http"
 )
 
-const (
-	TelegramToken      = "7467750317:AAF5S0XvD-HiTnZYwGNmLRggxGqABjFDwQ8"
-	ClarifaiAPIKey     = "b3bec883e1df4b589fa5471c97f596cf"
-	ClarifaiModelID    = "food-item-recognition"
-	ClarifaiModelVerID = "aa7f35c01e0642fda5cf400f543e7c40"
-)
+const ()
 
 func main() {
 	bot, err := tgbotapi.NewBotAPI(TelegramToken)
